@@ -128,6 +128,40 @@ class MainActivity2 : AppCompatActivity() {
                 }
                 .show()
         }
+        fun mostrarErrorEstado() {
+            SweetAlertDialog(this, SweetAlertDialog.ERROR_TYPE)
+                .setTitleText("Error")
+                .setContentText("La cuenta ha sido deshabilitada.")
+                .setConfirmText("Cerrar")
+                .setConfirmClickListener { dialog ->
+                    dialog.dismissWithAnimation()
+                }
+                .show()
+        }
+
+        fun consultarEstado(usu: String) {
+            val url = "http://100.26.70.56/verificarestado.php?usu=$usu"
+            val request = JsonObjectRequest(
+                Request.Method.GET, url, null,
+                { response ->
+                    try {
+                        val estado = response.getString("estado")
+                        if (estado == "0" || estado.lowercase() == "false" || estado.toIntOrNull() == 0) {
+                            mostrarErrorEstado()
+                        } else {
+
+                            mostrarCargando()
+                        }
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
+                },
+                { error ->
+                    error.printStackTrace()
+                }
+            )
+            dato.add(request)
+        }
 
         fun consultarDatos(usu: String, pass: String) {
             val url = "http://100.26.70.56/apiconsultausu.php?usu=$usu&pass=$pass"
@@ -136,11 +170,11 @@ class MainActivity2 : AppCompatActivity() {
                 { response ->
                     try {
                         val estado = response.getString("estado")
-                        if (estado == "0") {
+                        if (estado == "0" || estado.lowercase() == "false" || estado.toIntOrNull() == 0) {
                             mostrarError()
                         } else {
 
-                            mostrarCargando()
+                            consultarEstado(usu)
                         }
                     } catch (e: JSONException) {
                         e.printStackTrace()

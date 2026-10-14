@@ -12,10 +12,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import cn.pedant.SweetAlert.SweetAlertDialog
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 
 private lateinit var crearcontrasena: EditText
 private lateinit var repetircontrasena: EditText
 private lateinit var crearbtn: Button
+
+private lateinit var requestQueue: RequestQueue
 
 
 class Crearcontrasena : AppCompatActivity() {
@@ -32,6 +38,8 @@ class Crearcontrasena : AppCompatActivity() {
         crearcontrasena = findViewById(R.id.crearcon)
         repetircontrasena = findViewById(R.id.repetircon)
         crearbtn = findViewById(R.id.crear)
+        requestQueue = Volley.newRequestQueue(this)
+        val usuarioemail = intent.getStringExtra("email_usuario") ?: ""
 
 
 
@@ -156,10 +164,42 @@ class Crearcontrasena : AppCompatActivity() {
             }
 
             else {
-                procesoConCargandoYExito()
+
+                val nuevaClave = crearcontrasena.text.toString().trim()
+
+                // URL de tu backend en EC2
+                val url = "http://100.26.70.56/actualizar_password.php?email=$usuarioemail&password=$nuevaClave"
+
+                val stringRequest = StringRequest(
+                    Request.Method.GET, url,
+                    { response ->
+                        if (response.contains("Contraseña actualizada correctamente")) {
+                            // Si el servidor confirma el cambio, mostramos el diálogo de éxito
+                            procesoConCargandoYExito()
+                        } else {
+                            SweetAlertDialog(this, SweetAlertDialog.ERROR_TYPE)
+                                .setTitleText("Error")
+                                .setContentText("Respuesta del servidor: $response")
+                                .setConfirmText("Cerrar")
+                                .show()
+                        }
+                    },
+                    { error ->
+                        error.printStackTrace()
+                        SweetAlertDialog(this, SweetAlertDialog.ERROR_TYPE)
+                            .setTitleText("Error de Conexión")
+                            .setContentText("No se pudo conectar con el servidor: ${error.message}")
+                            .setConfirmText("Cerrar")
+                            .show()
+                    }
+                )
+
+                requestQueue.add(stringRequest)
             }
         }
-    }
+
+            }
+        }
 
 
-}
+

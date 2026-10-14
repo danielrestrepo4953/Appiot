@@ -8,7 +8,7 @@
     android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/imageView14"
+        android:id="@+id/imageView10"
         android:layout_width="476dp"
         android:layout_height="879dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -18,19 +18,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.777"
         app:srcCompat="@drawable/umnbackground" />
-
-    <TextView
-        android:id="@+id/correotextolgn4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:scrollbarSize="4dp"
-        android:text="Lista de usuarios"
-        android:textColor="#000000"
-        android:textSize="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView15" />
 
     <ImageView
         android:id="@+id/imageView15"
@@ -42,24 +29,39 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/umenizulu" />
 
+    <TextView
+        android:id="@+id/correotextolgn4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:scrollbarSize="4dp"
+        android:text="Lista de usuarios"
+        android:textColor="#000000"
+        android:textSize="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView15" />
+
     <androidx.appcompat.widget.SearchView
         android:id="@+id/searchViewUsuarios"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="62dp"
+        android:layout_height="272dp"
+        android:layout_marginTop="156dp"
         android:hint="Buscar"
         android:queryHint="Buscar usuario..."
-        app:layout_constraintBottom_toTopOf="@+id/rvUsuarios"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.002"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvUsuarios"
-        android:layout_width="193dp"
-        android:layout_height="341dp"
-        android:layout_marginBottom="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ListView
+        android:id="@+id/lista"
+        android:layout_width="409dp"
+        android:layout_height="236dp"
+        android:layout_marginTop="152dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/correotextolgn4" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

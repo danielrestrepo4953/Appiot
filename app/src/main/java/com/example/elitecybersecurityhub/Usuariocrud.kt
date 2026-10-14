@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import cn.pedant.SweetAlert.SweetAlertDialog
 
+private lateinit var editarid: EditText
 private lateinit var editarNombre: EditText
 private lateinit var editarApellido: EditText
 private lateinit var editarCorreo: EditText
@@ -35,11 +36,22 @@ class Usuariocrud : AppCompatActivity() {
             insets
         }
 
+        editarid = findViewById(R.id.idtext)
         editarNombre = findViewById(R.id.modnombre)
         editarApellido = findViewById(R.id.modapellido)
         editarCorreo = findViewById(R.id.modemail)
         modificar = findViewById(R.id.modbtn)
         eliminar = findViewById(R.id.eliminarbtn)
+
+        val idusu = intent.getIntExtra("Id", 0)
+        val nombreusu = intent.getStringExtra("Nombre") ?: ""
+        val apellidousu = intent.getStringExtra("Apellido") ?: ""
+        val emailusu = intent.getStringExtra("Email") ?: ""
+
+        editarid.setText(idusu.toString())
+        editarNombre.setText((nombreusu))
+        editarApellido.setText(apellidousu)
+        editarCorreo.setText((emailusu))
 
         fun mostrarError() {
             SweetAlertDialog(this, SweetAlertDialog.ERROR_TYPE)
@@ -116,6 +128,23 @@ class Usuariocrud : AppCompatActivity() {
             return texto.matches(regex)
         }
 
+        fun modificarDatos(id: Int, nombre: String,
+                              apellido: String, email: String) {
+            val helper = ConexionDbHelper(this)
+            val db = helper.writableDatabase
+            val sql = "UPDATE USUARIOS SET NOMBRE='$nombre',APELLIDO='$apellido' ,EMAIL='$email' WHERE ID=$id"
+            db.execSQL(sql)
+            db.close()
+        }
+
+        fun eliminarDatos(id: Int) {
+            val helper = ConexionDbHelper(this)
+            val db = helper.writableDatabase
+            val sql = "DELETE FROM USUARIOS WHERE ID=$id"
+            db.execSQL(sql)
+            db.close()
+        }
+
 
         modificar.setOnClickListener {
             var esValido = true
@@ -154,6 +183,7 @@ class Usuariocrud : AppCompatActivity() {
             }
 
             else {
+                modificarDatos(idusu, editarNombre.text.toString().trim(), editarApellido.text.toString().trim(), editarCorreo.text.toString().trim())
                 procesoConCargandoYExito()
 
             }
@@ -161,6 +191,8 @@ class Usuariocrud : AppCompatActivity() {
 
         eliminar.setOnClickListener {
             mostrarConfirmacion()
+            eliminarDatos(idusu)
+            mostrarExito()
         }
 
     }

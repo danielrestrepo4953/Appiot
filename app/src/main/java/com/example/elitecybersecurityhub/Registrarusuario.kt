@@ -1,16 +1,22 @@
 package com.example.elitecybersecurityhub
 
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import cn.pedant.SweetAlert.SweetAlertDialog
+import kotlin.text.insert
 
 private lateinit var nombrereg: EditText
 private lateinit var apellidoreg: EditText
@@ -37,6 +43,38 @@ class Registrarusuario : AppCompatActivity() {
         contrasenareg = findViewById(R.id.contrasenaregistrar2)
         confirmarcontrareg = findViewById(R.id.confirmarcontrasena2)
         botonregistro = findViewById(R.id.registrobtn)
+
+        val helper = ConexionDbHelper(this)
+
+        fun hayInternet(context: Context): Boolean {
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = connectivityManager.activeNetwork ?: return false
+            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+            return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        }
+
+        fun guardar(nom: String, ape: String, mai: String, cla: String) {
+            val helper = ConexionDbHelper(this)
+            val db = helper.writableDatabase
+            try {
+                val datos = ContentValues().apply {
+                    put("NOMBRE", nom)
+                    put("APELLIDO", ape)
+                    put("EMAIL", mai)
+                    put("CLAVE", cla)
+                }
+                db.insertOrThrow("USUARIOS", null, datos)
+                Toast.makeText(this, "Datos ingresados sin problemas",
+                    Toast.LENGTH_LONG).show()
+                val listado = Intent(this, Listausuarios::class.java)
+                startActivity(listado)
+
+
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error: ${e.message}",
+                    Toast.LENGTH_LONG).show()
+            }
+        }
 
         fun validarEmail(email: String): Boolean {
             val regex = Regex(
@@ -258,7 +296,13 @@ class Registrarusuario : AppCompatActivity() {
 
             }
             else{
-                procesoConCargandoYExito()
+                guardar(
+                    nombrereg.text.toString().trim(),
+                    apellidoreg.text.toString().trim(),
+                    correoreg.text.toString().trim(),
+                    contrasenareg.text.toString().trim()
+
+                )
             }
         }
     }
