@@ -239,8 +239,9 @@ class MainActivity2 : AppCompatActivity() {
 
 
         registrologin.setOnClickListener {
-
-            val intent = Intent(this, Registrarusuario::class.java)
+            val intent = Intent(this, Registrarusuario::class.java).apply {
+                putExtra("origen", "login")
+            }
             startActivity(intent)
         }
 

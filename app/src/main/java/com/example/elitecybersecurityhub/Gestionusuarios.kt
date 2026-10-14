@@ -57,10 +57,10 @@ class Gestionusuarios : AppCompatActivity() {
         }
 
         registrarbtn.setOnClickListener {
-            val intent = Intent(this, Registrarusuario::class.java)
+            val intent = Intent(this, Registrarusuario::class.java).apply {
+                putExtra("origen", "gestion")
+            }
             startActivity(intent)
-
-
         }
 
         listarbtn.setOnClickListener {

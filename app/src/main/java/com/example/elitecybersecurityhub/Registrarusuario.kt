@@ -33,6 +33,17 @@ private lateinit var requestQueue: RequestQueue
 
 class Registrarusuario : AppCompatActivity() {
 
+    private val origen by lazy { intent.getStringExtra("origen") ?: "gestion" }
+
+    private fun navegarSegunOrigen() {
+        val destino = if (origen == "login") {
+            Intent(this, MainActivity2::class.java)
+        } else {
+            Intent(this, Gestionusuarios::class.java)
+        }
+        startActivity(destino)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -87,7 +98,7 @@ class Registrarusuario : AppCompatActivity() {
                     .setConfirmText("Aceptar")
                     .setConfirmClickListener { dialog ->
                         dialog.dismissWithAnimation()
-                        startActivity(Intent(this, Gestionusuarios::class.java))
+                        navegarSegunOrigen()
                     }
                     .show()
             }
@@ -239,7 +250,7 @@ class Registrarusuario : AppCompatActivity() {
             pDialog.confirmText = "Aceptar"
             pDialog.setConfirmClickListener { dialog ->
                 dialog.dismissWithAnimation()
-                startActivity(Intent(this, Gestionusuarios::class.java))
+                navegarSegunOrigen()
             }
         }, 2000)
     }
