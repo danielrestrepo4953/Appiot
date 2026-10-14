@@ -56,6 +56,7 @@ class Listausuarios : AppCompatActivity() {
         // 2. Si hay internet, intentamos sincronizar los pendientes
         if (hayInternet()) {
             sincronizarPendientesConEC2()
+            descargarUsuariosDesdeEC2()
         }
     }
 
@@ -105,6 +106,56 @@ class Listausuarios : AppCompatActivity() {
         }
         cursor.close()
         db.close()
+    }
+
+    private fun descargarUsuariosDesdeEC2() {
+        val url = "http://100.26.70.56/obtener_usuarios.php"
+
+        val request = JsonObjectRequest(Request.Method.GET, url, null,
+            { response ->
+                val estado = response.optBoolean("estado", false)
+                if (estado) {
+                    val jsonArray = response.optJSONArray("usuarios")
+                    if (jsonArray != null) {
+                        val helper = ConexionDbHelper(this)
+                        val db = helper.writableDatabase
+
+                        for (i in 0 until jsonArray.length()) {
+                            val obj = jsonArray.getJSONObject(i)
+                            val nombre = obj.optString("nombre", "")
+                            val apellido = obj.optString("apellido", "")
+                            val email = obj.optString("email", "")
+                            val clave = obj.optString("clave", "")
+
+                            // Preparamos los datos con SINCRONIZADO = 1 (ya que vienen del servidor)
+                            val values = android.content.ContentValues().apply {
+                                put("NOMBRE", nombre)
+                                put("APELLIDO", apellido)
+                                put("EMAIL", email)
+                                put("CLAVE", clave)
+                                put("SINCRONIZADO", 1)
+                            }
+
+                            // Insertamos o reemplazamos en SQLite local evitando duplicados gracias al UNIQUE
+                            db.insertWithOnConflict(
+                                "USUARIOS",
+                                null,
+                                values,
+                                android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
+                            )
+                        }
+                        db.close()
+
+                        // Recargamos la lista en pantalla para reflejar los nuevos usuarios descargados
+                        cargarUsuariosLocales()
+                    }
+                }
+            },
+            { err ->
+                // Error de red silencioso al descargar (se reintentará al reabrir)
+            }
+        )
+        requestQueue.add(request)
     }
 
     private fun enviarAEc2(nom: String, ape: String, mai: String, cla: String) {
