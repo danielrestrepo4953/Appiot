@@ -50,12 +50,12 @@ class Listausuarios : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 1. Cargamos la lista local de SQLite inmediatamente
         cargarUsuariosLocales()
 
-        // 2. Si hay internet, intentamos sincronizar los pendientes
         if (hayInternet()) {
-            sincronizarPendientesConEC2()
+            sincronizarNuevosRegistros()         // SINCRONIZADO = 0
+            sincronizarModificacionesPendientes()// SINCRONIZADO = 2
+            sincronizarEliminacionesPendientes() // SINCRONIZADO = -1  <-- NUEVO
             descargarUsuariosDesdeEC2()
         }
     }
@@ -89,7 +89,7 @@ class Listausuarios : AppCompatActivity() {
         adapter.actualizarLista(listaUsuarios)
     }
 
-    private fun sincronizarPendientesConEC2() {
+    private fun sincronizarNuevosRegistros() {
         val helper = ConexionDbHelper(this)
         val db = helper.readableDatabase
         val cursor = db.rawQuery("SELECT * FROM USUARIOS WHERE SINCRONIZADO = 0", null)
@@ -193,6 +193,51 @@ class Listausuarios : AppCompatActivity() {
         requestQueue.add(reqVerificar)
     }
 
+    private fun sincronizarModificacionesPendientes() {
+        val helper = ConexionDbHelper(this)
+        val db = helper.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM USUARIOS WHERE SINCRONIZADO = 2", null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow("ID"))
+                val nom = cursor.getString(cursor.getColumnIndexOrThrow("NOMBRE"))
+                val ape = cursor.getString(cursor.getColumnIndexOrThrow("APELLIDO"))
+                val maiNuevo = cursor.getString(cursor.getColumnIndexOrThrow("EMAIL"))
+
+                // Leemos el correo original. Si por alguna razón está vacío, usamos el actual.
+                var maiOriginal = cursor.getString(cursor.getColumnIndexOrThrow("EMAIL_ORIGINAL"))
+                if (maiOriginal.isNullOrEmpty()) {
+                    maiOriginal = maiNuevo
+                }
+
+                enviarModificacionAEc2(id, maiOriginal, nom, ape, maiNuevo)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+    }
+
+    private fun enviarModificacionAEc2(id: Int, emailOriginal: String, nombre: String, apellido: String, emailNuevo: String) {
+        val urlModificar = "http://100.26.70.56/modificar_usuario.php?email_antiguo=$emailOriginal&nombre=$nombre&apellido=$apellido&nuevo_email=$emailNuevo"
+
+        val request = JsonObjectRequest(Request.Method.GET, urlModificar, null,
+            { response ->
+                val estado = response.optBoolean("estado", false)
+                if (estado) {
+                    val helper = ConexionDbHelper(this)
+                    val db = helper.writableDatabase
+                    // Una vez sincronizado, actualizamos sincronizado = 1 y actualizamos el EMAIL_ORIGINAL al nuevo correo
+                    db.execSQL("UPDATE USUARIOS SET SINCRONIZADO = 1, EMAIL_ORIGINAL = '$emailNuevo' WHERE ID = $id")
+                    db.close()
+                    cargarUsuariosLocales()
+                }
+            },
+            { err -> /* Error de red, se reintentará en el próximo inicio */ }
+        )
+        requestQueue.add(request)
+    }
+
     private fun marcarComoSincronizado(email: String) {
         val helper = ConexionDbHelper(this)
         val db = helper.writableDatabase
@@ -230,5 +275,44 @@ class Listausuarios : AppCompatActivity() {
         return Normalizer.normalize(texto, Normalizer.Form.NFD)
             .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
             .lowercase()
+    }
+
+    private fun sincronizarEliminacionesPendientes() {
+        val helper = ConexionDbHelper(this)
+        val db = helper.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM USUARIOS WHERE SINCRONIZADO = -1", null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow("ID"))
+                val mai = cursor.getString(cursor.getColumnIndexOrThrow("EMAIL"))
+
+                enviarEliminacionAEc2(id, mai)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+    }
+
+    private fun enviarEliminacionAEc2(id: Int, email: String) {
+        val urlEliminar = "http://100.26.70.56/eliminar_usuario.php?email=$email"
+
+        val request = JsonObjectRequest(Request.Method.GET, urlEliminar, null,
+            { response ->
+                val estado = response.optBoolean("estado", false)
+                if (estado) {
+                    val helper = ConexionDbHelper(this)
+                    val db = helper.writableDatabase
+                    // Una vez borrado exitosamente en el servidor EC2, lo eliminamos definitivamente de SQLite
+                    db.delete("USUARIOS", "ID = ?", arrayOf(id.toString()))
+                    db.close()
+                    cargarUsuariosLocales()
+                }
+            },
+            { err ->
+                // Error de red, se reintentará en el próximo inicio con internet
+            }
+        )
+        requestQueue.add(request)
     }
 }

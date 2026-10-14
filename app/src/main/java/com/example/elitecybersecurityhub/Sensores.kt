@@ -29,6 +29,10 @@ lateinit var imagenTemp: ImageView
 
 lateinit var datos: RequestQueue
 
+private lateinit var bombilla: ImageView
+
+private lateinit var bombillatxt: TextView
+
 private lateinit var cameraManager: CameraManager
 
 private lateinit var cameraId: String
@@ -54,6 +58,10 @@ class Sensores : AppCompatActivity() {
         temp = findViewById(R.id.temptexto)
         hum = findViewById(R.id.humtexto)
         imagenTemp = findViewById(R.id.tempimagen)
+        
+        bombilla = findViewById(R.id.bombillaoffimg)
+        bombillatxt = findViewById(R.id.textobombilla)
+
         datos = Volley.newRequestQueue(this)
         cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
         cameraId = cameraManager.cameraIdList[0]
@@ -66,6 +74,7 @@ class Sensores : AppCompatActivity() {
 
 
         var imagenOriginal = true
+        var bombillaOriginal = true
 
 
 
@@ -84,6 +93,17 @@ class Sensores : AppCompatActivity() {
             }
 
             imagenOriginal = !imagenOriginal
+        }
+
+        bombilla.setOnClickListener {
+            if (bombillaOriginal) {
+                bombillatxt.text = "BOMBILLA: ON"
+                bombilla.setImageResource(R.drawable.bombillaencendida)
+            } else {
+                bombillatxt.text = "BOMBILLA: OFF"
+                bombilla.setImageResource(R.drawable.bombillaapagada)
+            }
+            bombillaOriginal = !bombillaOriginal
         }
 
 

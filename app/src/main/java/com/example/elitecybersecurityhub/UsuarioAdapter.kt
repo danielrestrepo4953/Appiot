@@ -30,9 +30,18 @@ class UsuarioAdapter(
         holder.tvCorreoItem.text = usuario.email
 
         // Si NO está sincronizado (0), pintamos el texto en ROJO
+        // En onBindViewHolder de UsuarioAdapter.kt:
         if (usuario.sincronizado == 0) {
             holder.tvNombreCompleto.setTextColor(Color.parseColor("#C8002E"))
             holder.tvCorreoItem.text = "${usuario.email} (Pendiente de sincronizar)"
+            holder.tvCorreoItem.setTextColor(Color.parseColor("#C8002E"))
+        } else if (usuario.sincronizado == 2) {
+            holder.tvNombreCompleto.setTextColor(Color.parseColor("#C8002E"))
+            holder.tvCorreoItem.text = "${usuario.email} (Pendiente de actualizar)"
+            holder.tvCorreoItem.setTextColor(Color.parseColor("#C8002E"))
+        } else if (usuario.sincronizado == -1) {
+            holder.tvNombreCompleto.setTextColor(Color.parseColor("#C8002E"))
+            holder.tvCorreoItem.text = "${usuario.email} (Pendiente de eliminar)"
             holder.tvCorreoItem.setTextColor(Color.parseColor("#C8002E"))
         } else {
             holder.tvNombreCompleto.setTextColor(Color.parseColor("#000000"))

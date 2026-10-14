@@ -55,11 +55,11 @@
 
     <ImageView
         android:id="@+id/btnlinterna"
-        android:layout_width="92dp"
-        android:layout_height="227dp"
-        android:layout_marginTop="508dp"
+        android:layout_width="74dp"
+        android:layout_height="205dp"
+        android:layout_marginTop="540dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.012"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/flashlighton" />
@@ -93,7 +93,7 @@
         android:id="@+id/temptexto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="72dp"
+        android:layout_marginTop="104dp"
         android:text="TEMPERATURA: 18°"
         android:textColor="#FF5722"
         android:textSize="25sp"
@@ -125,5 +125,29 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/bombillaoffimg"
+        android:layout_width="84dp"
+        android:layout_height="146dp"
+        android:layout_marginBottom="108dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.036"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/bombillaapagada" />
+
+    <TextView
+        android:id="@+id/textobombilla"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="76dp"
+        android:text="BOMBILLA: OFF"
+        android:textColor="#E91E63"
+        android:textSize="25dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.094"
+        app:layout_constraintStart_toEndOf="@+id/bombillaoffimg"
+        app:layout_constraintTop_toBottomOf="@+id/temptexto" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
