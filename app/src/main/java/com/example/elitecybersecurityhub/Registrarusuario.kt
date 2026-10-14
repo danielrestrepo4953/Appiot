@@ -3,6 +3,7 @@ package com.example.elitecybersecurityhub
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
@@ -119,7 +120,7 @@ class Registrarusuario : AppCompatActivity() {
                 put("CLAVE", cla)
                 put("SINCRONIZADO", sincronizado)
             }
-            db.insertOrThrow("USUARIOS", null, datos)
+            db.insertWithOnConflict("USUARIOS", null, datos, SQLiteDatabase.CONFLICT_REPLACE)
         } catch (e: Exception) {
             // Si ya existe en SQLite local por clave primaria o correo, puedes manejarlo aquí
             e.printStackTrace()
