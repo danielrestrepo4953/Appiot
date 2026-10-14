@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.android.volley.Request
 import com.android.volley.RequestQueue
+import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 
@@ -85,7 +86,7 @@ class Registrarusuario : AppCompatActivity() {
                     .setConfirmText("Aceptar")
                     .setConfirmClickListener { dialog ->
                         dialog.dismissWithAnimation()
-                        startActivity(Intent(this, Listausuarios::class.java))
+                        startActivity(Intent(this, Gestionusuarios::class.java))
                     }
                     .show()
             }
@@ -136,28 +137,48 @@ class Registrarusuario : AppCompatActivity() {
         // Paso A: Verificar si el correo ya existe en EC2 usando verificar_correo.php
         val urlVerificar = "http://100.26.70.56/verificar_correo.php?email=$mai"
 
-        val reqVerificar = StringRequest(Request.Method.GET, urlVerificar,
+        val reqVerificar = JsonObjectRequest(Request.Method.GET, urlVerificar, null,
             { response ->
-                // Suponiendo que tu PHP devuelve "false" si ya existe, y "true" si está libre
-                if (response.trim().lowercase() == "false") {
-                    callback(false, "El correo $mai ya se encuentra registrado en el servidor.")
-                } else {
-                    // Paso B: Registrar en EC2 usando registrar_usuario.php
-                    val urlRegistrar = "http://100.26.70.56/registrar_usuario.php?email=$mai&nombre=$nom&apellido=$ape&password=$cla"
-                    val reqRegistrar = StringRequest(Request.Method.GET, urlRegistrar,
-                        { resReg ->
-                            if (resReg.trim().lowercase() == "true") {
-                                callback(true, "Registrado con éxito")
-                            } else {
-                                callback(false, "Error al registrar en el servidor.")
-                            }
-                        },
-                        { err -> callback(false, "Error de red: ${err.message}") }
-                    )
-                    requestQueue.add(reqRegistrar)
+                try {
+                    // Tu PHP devuelve {"estado": false, "mensaje": "El usuario ya existe"} si ya está registrado
+                    val estadoVerif = response.optBoolean("estado", true)
+
+                    if (!estadoVerif) {
+                        // El usuario YA existe en el servidor
+                        callback(false, "El correo $mai ya se encuentra registrado en el servidor.")
+                    } else {
+                        // Paso B: Registrar en EC2 usando registrar_usuario.php
+                        val urlRegistrar = "http://100.26.70.56/registrar_usuario.php?email=$mai&nombre=$nom&apellido=$ape&password=$cla"
+
+                        val reqRegistrar = JsonObjectRequest(
+                            Request.Method.GET, urlRegistrar, null,
+                            { resReg ->
+                                try {
+                                    val estadoReg = resReg.optBoolean("estado", false)
+                                    val mensajeReg =
+                                        resReg.optString("mensaje", "Respuesta del servidor")
+
+                                    if (estadoReg) {
+                                        callback(true, mensajeReg)
+                                    } else {
+                                        callback(false, mensajeReg)
+                                    }
+                                } catch (e: Exception) {
+                                    callback(
+                                        false,
+                                        "Error al procesar JSON de registro: ${e.message}"
+                                    )
+                                }
+                            },
+                            { err -> callback(false, "Error de red al registrar: ${err.message}") }
+                        )
+                        requestQueue.add(reqRegistrar)
+                    }
+                } catch (e: Exception) {
+                    callback(false, "Error al procesar JSON de verificación: ${e.message}")
                 }
             },
-            { err -> callback(false, "Error de red al verificar correo: ${err.message}") }
+            { err -> callback(false, "Error de red al verificar correo: $err") } //cambiar por ${err.message}
         )
         requestQueue.add(reqVerificar)
     }
@@ -217,7 +238,7 @@ class Registrarusuario : AppCompatActivity() {
             pDialog.confirmText = "Aceptar"
             pDialog.setConfirmClickListener { dialog ->
                 dialog.dismissWithAnimation()
-                startActivity(Intent(this, Listausuarios::class.java))
+                startActivity(Intent(this, Gestionusuarios::class.java))
             }
         }, 2000)
     }
